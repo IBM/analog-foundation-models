@@ -12,19 +12,6 @@ pip install vllm
 pip install tqdm datasets
 ```
 
-## Quickstart
-The file [example.py](example.py) shows how to use the pre-trained analog foundation models.
-To let the model generate in response to a prompt, simply do
-```bash
-python example.py --model-name meta-llama/Llama-3.2-1B-Instruct
-```
-or 
-```bash
-python example.py --model-name microsoft/Phi-3-mini-4k-instruct
-```
-
-One can also customize the prompt with `--prompt "some prompt"`.
-
 ## Creating an analog foundation model
 
 Make sure that your pwd is this repository. We will generate data and train
