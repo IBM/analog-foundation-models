@@ -1,0 +1,94 @@
+general:
+    ds_config_path: ???
+    output_dir: ???
+    fp: ???
+    task_name: ??? # [pretrain]
+    seed: 0
+    eval_only: false
+    pre_train_dataset: null
+    num_gpus: 8
+    distillation: false
+    distillation_temperature: 2.0
+    distillation_beta: 0.25
+
+model:
+    base_model: Phi-3-mini-4k-instruct
+    path_to_pretrained: microsoft/Phi-3-mini-4k-instruct
+    subsets: all
+
+training_args:
+    batch_size: ???
+    eval_batch_size: ???
+    max_grad_norm: 1
+    gradient_accumulation_steps: 8
+    gradient_checkpointing: true
+    warmup_ratio: 0.06
+    lr: ???
+    lr_end: null
+    weight_decay: 0.1
+    adam_beta1: 0.9
+    adam_beta2: 0.98
+    adam_epsilon: 1.0e-6
+    eval_strategy: steps
+    save_strategy: steps
+    lr_scheduler_type: linear
+    num_train_epochs: 10
+    max_steps: -1 #if -1, then num_train_epochs is used
+    logging_strategy: steps
+    logging_steps: 500
+    eval_steps: 500
+    save_steps: 500
+    save_total_limit: 1
+    eval_medqa: false
+    load_best_model_at_end: true
+    overwrite_output_dir: false
+    do_train: true
+    do_eval: true
+    eval_on_start: true
+    bf16: false
+    greater_is_better: true
+    report_to: wandb
+
+
+rpu_config:
+    forward_inp_res: -1
+    forward_out_noise: 0.0
+    forward_out_noise_per_channel: false
+
+    forward_out_bound: 0
+    forward_out_res: -1
+
+    clip_sigma: -1.0
+    clip_type: null
+
+    modifier_std_dev: 0.0
+    modifier_res: -1
+    modifier_offset: 0.0
+    modifier_enable_during_test: false
+    modifier_type: null
+
+    mapping_max_input_size: -1
+
+    input_range_enable: false
+    input_range_fast_mode: false
+    input_range_learn_input_range: true
+    input_range_init_value: 3.0
+    input_range_init_with_max: false
+    input_range_init_from_data: 100
+    input_range_init_std_alpha: 3.0
+    input_range_decay: 0.001
+    input_range_input_min_percentage: 0.95
+
+lora:
+    lora_enable: false
+    lora_r: 0
+    lora_target_modules: "qkv_proj, o_proj, gate_up_proj, down_proj"
+    lora_alpha: 32
+    lora_dropout: 0.0
+    init_lora_weights: true
+    lora_bias: "none"
+    use_rslora: false
+    modules_to_save: "lm_head, norm, post_attention_layernorm, input_layernorm, embed_tokens"
+    init_lora_weights: true
+    use_dora: false
+    exclude_modules: "base_layer, lora_A, lora_B"

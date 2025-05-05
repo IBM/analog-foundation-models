@@ -1,0 +1,8 @@
+**/.vscode
+**/data/meta-llama/Llama-3.2-1B-Instruct
+<<<<<<< HEAD
+**/data/microsoft/Phi-3-mini-4k-instruct
+**/__pycache__
+=======
+**/data/microsoft/Phi-3-mini-4k-instruct
+>>>>>>> 59644b7 (Initial)
