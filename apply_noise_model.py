@@ -9,8 +9,8 @@ class NoiseConfig:
     """Configuration for noise application"""
 
     noise_type: Literal["pcm", "additive"]
-    application: Literal["per_column", "per_tile"]
     additive_std_multiplier: float = 0.05
+    max_inp_size: int = -1
 
 
 def polyval(p, x):
@@ -85,12 +85,11 @@ def add_PCM_noise(weights: torch.Tensor, noise_config: NoiseConfig) -> torch.Ten
     )
 
     epsilon = torch.finfo(torch.float16).tiny
-    if noise_config.application == "per_column":
+    if noise_config.max_inp_size <= 0:
         scale = 1 / (weights.abs().amax(1).view(-1, 1) + epsilon)
-    elif noise_config.application == "per_tile":
-        tile_size = 512
+    else:
         _, cols = weights.shape
-        split_sizes = get_split_sizes(cols, tile_size)
+        split_sizes = get_split_sizes(cols, noise_config.max_inp_size)
         weight_tiles = torch.split(weights, split_sizes, dim=1)
 
         tile_scales = []
@@ -101,10 +100,6 @@ def add_PCM_noise(weights: torch.Tensor, noise_config: NoiseConfig) -> torch.Ten
             tile_scales.append(tile_scale_expanded)
 
         scale = torch.cat(tile_scales, dim=1)
-    else:
-        raise ValueError(
-            f"Invalid application type: {noise_config.application}. Must be 'per_column' or 'per_tile'"
-        )
 
     weights = weights * scale * GMAX
 
@@ -136,18 +131,16 @@ def add_additive_noise(
         torch.Tensor: Output tensor of the same shape as the input tensor.
     """
 
-    if noise_config.application == "per_column":
+    if noise_config.max_inp_size <= 0:
         amax = weights.abs().amax(dim=1, keepdim=True)
-    elif noise_config.application == "per_tile":
-        tile_size = 512
+    else:
         _, cols = weights.shape
-        split_sizes = get_split_sizes(cols, tile_size)
+        split_sizes = get_split_sizes(cols, noise_config.max_inp_size)
 
         weight_tiles = torch.split(weights, split_sizes, dim=1)
 
         tile_amaxes = []
         for tile in weight_tiles:
-
             tile_amax = tile.abs().amax(dim=1, keepdim=True)  # [rows, 1]
             tile_amax_expanded = tile_amax.expand(
                 -1, tile.size(1)
@@ -155,10 +148,7 @@ def add_additive_noise(
             tile_amaxes.append(tile_amax_expanded)
 
         amax = torch.cat(tile_amaxes, dim=1)
-    else:
-        raise ValueError(
-            f"Invalid application type: {noise_config.application}. Must be 'per_column' or 'per_tile'"
-        )
+
     with torch.no_grad():
         noise = noise_config.additive_std_multiplier * amax * torch.randn_like(weights)
     weights += noise
@@ -191,12 +181,12 @@ def main():
     model = AutoModelForCausalLM.from_pretrained(model_path)
 
     # choose the noise config
-    noise_config = NoiseConfig(noise_type="pcm", application="per_tile")
+    noise_config = NoiseConfig(noise_type="pcm", max_inp_size=512)
 
     # additive gaussian noise
     # noise_config = NoiseConfig(
     #     noise_type="additive",
-    #     application="per_column",
+    #     max_inp_size=512,
     #     additive_std_multiplier=0.05  # 5% w.r.t. abs-max
     # )
     
