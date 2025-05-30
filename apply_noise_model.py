@@ -141,10 +141,10 @@ def add_additive_noise(
 
         tile_amaxes = []
         for tile in weight_tiles:
-            tile_amax = tile.abs().amax(dim=1, keepdim=True)  # [rows, 1]
+            tile_amax = tile.abs().amax(dim=1, keepdim=True)
             tile_amax_expanded = tile_amax.expand(
                 -1, tile.size(1)
-            )  # [rows, tile_width]
+            )
             tile_amaxes.append(tile_amax_expanded)
 
         amax = torch.cat(tile_amaxes, dim=1)
