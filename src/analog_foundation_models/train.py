@@ -20,7 +20,9 @@ from transformers import (
 )
 from transformers.utils.logging import enable_default_handler, enable_explicit_format
 
+from aihwkit_lightning.nn.conversion import convert_to_analog
 from utils.task_parser import get_args
+from utils.aihwkit_utils import create_rpu_config
 from utils.train_utils import (
     CustomTrainer,
 )
@@ -51,6 +53,11 @@ def main():
         )
 
     model = AutoModelForCausalLM.from_pretrained(os.path.join("./data", args.base_model))
+
+    if not args.fp:
+        rpu_config = create_rpu_config(args)
+        model = convert_to_analog(model, rpu_config=rpu_config)
+
     tokenizer = AutoTokenizer.from_pretrained(
         os.path.join("./data", args.base_model),
         padding_side="left"
